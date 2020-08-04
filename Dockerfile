@@ -26,5 +26,6 @@ ADD files/restore_last_git_modified_time.sh /restore_last_git_modified_time.sh
 RUN chmod +x /restore_last_git_modified_time.sh
 
 ADD files/run-alpine-lftp.sh /scripts/run-alpine-lftp.sh
+RUN chmod +x /scripts/run-alpine-lftp.sh
 
 ENTRYPOINT ["/scripts/run-alpine-lftp.sh"]
