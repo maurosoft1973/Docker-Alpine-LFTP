@@ -71,7 +71,7 @@ LFTP includes the following features (some may be missed in this list):
 
 ## Sample use on gitlab pipeline
 
-```
+```yalm
 stages:
     - deploy
 
