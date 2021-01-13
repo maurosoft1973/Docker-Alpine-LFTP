@@ -6,7 +6,7 @@ LABEL \
     maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     architecture="amd64/x86_64" \
     lftp-version="4.9.1" \
-    alpine-version="3.12.0" \
+    alpine-version="3.12.3" \
     build="$BUILD_DATE" \
     org.opencontainers.image.title="alpine-lftp" \
     org.opencontainers.image.description="LFTP 4.9.1 Docker image running on Alpine Linux" \
@@ -22,6 +22,9 @@ RUN \
     rm -rf /tmp/* /var/cache/apk/*
 
 # https://gist.githubusercontent.com/HackingGate/9e8169c7645b074b2f40c959ca20d738/raw/3ae3913f308d9cf34962ac3488b5973a2fbe1a95/restore_last_git_modified_time.sh
+ADD files/restore_last_git_modified_time.sh /usr/local/sbin/git_restore_last_modified_time
+RUN chmod +x /usr/local/sbin/git_restore_last_modified_time
+
 ADD files/restore_last_git_modified_time.sh /restore_last_git_modified_time.sh
 RUN chmod +x /restore_last_git_modified_time.sh
 

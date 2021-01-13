@@ -87,3 +87,6 @@ docker exec -it ${CONTAINER} date
 echo -e ""
 echo -e "Container Logs"
 docker logs ${CONTAINER}
+
+echo -e "Container attach"
+docker attach ${CONTAINER}
