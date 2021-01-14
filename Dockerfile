@@ -18,7 +18,7 @@ LABEL \
     org.opencontainers.image.created=$BUILD_DATE
 
 RUN \
-    apk add --update --no-cache git lftp  && \
+    apk add --update --no-cache openssh-client git lftp && \
     rm -rf /tmp/* /var/cache/apk/*
 
 # https://gist.githubusercontent.com/HackingGate/9e8169c7645b074b2f40c959ca20d738/raw/3ae3913f308d9cf34962ac3488b5973a2fbe1a95/restore_last_git_modified_time.sh
