@@ -5,14 +5,14 @@ ARG BUILD_DATE
 LABEL \
     maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     architecture="amd64/x86_64" \
-    lftp-version="4.9.1" \
-    alpine-version="3.12.3" \
+    lftp-version="4.9.2-r1" \
+    alpine-version="3.13.2" \
     build="$BUILD_DATE" \
     org.opencontainers.image.title="alpine-lftp" \
     org.opencontainers.image.description="LFTP 4.9.1 Docker image running on Alpine Linux" \
     org.opencontainers.image.authors="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     org.opencontainers.image.vendor="Mauro Cardillo" \
-    org.opencontainers.image.version="v4.9.1" \
+    org.opencontainers.image.version="v4.9.2-r1" \
     org.opencontainers.image.url="https://hub.docker.com/r/maurosoft1973/alpine-lftp/" \
     org.opencontainers.image.source="https://github.com/maurosoft1973/alpine-lftp" \
     org.opencontainers.image.created=$BUILD_DATE
