@@ -11,7 +11,7 @@ before_script:
     - export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
     - export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
     - export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
-    - export
+    - echo $JOB_ALPINE_VERSION
     - exit 0
 
 update readme:
