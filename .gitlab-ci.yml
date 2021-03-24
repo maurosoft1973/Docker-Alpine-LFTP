@@ -1,32 +1,87 @@
 image: docker:stable
 
 stages:
-  - Build e Push image
-  - Documentation
+    - Build e Push image
+    - Documentation
+
+before_script:
+    - apk add bash
+    - echo "Read Environment Variable from .env file"
+    - source ./.env
+    - export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
+    - export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
+    - export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
+    - export
+    - exit 0
 
 update readme:
-  stage: Documentation
-  variables:
-    DOCKERHUB_USERNAME: "$DOCKER_HUB_USER"
-    DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
-    DOCKERHUB_REPO_PREFIX: "maurosoft1973"
-    DOCKERHUB_REPO_NAME: "alpine-lftp"
-    DOCKERHUB_SHORT_DESCRIPTION: "LFTP Docker image running on Alpine Linux"
-  only:
-  - master
-  script:
-  - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
-  - docker pull maurosoft1973/alpine-readme-to-dockerhub:latest
-  - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+    stage: Documentation
+    variables:
+        GITLAB_SSH_KEY: "$GITLAB_CI_SSH_KEY"
+        DOCKERHUB_USERNAME: "$DOCKER_HUB_USER"
+        DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
+        DOCKERHUB_REPO_PREFIX: "maurosoft1973"
+        DOCKERHUB_REPO_NAME: "alpine-lftp"
+        DOCKERHUB_SHORT_DESCRIPTION: "LFTP Docker image running on Alpine Linux"
+    only:
+        - master
+    script:
+        - apk add --no-cache bash git openssh-client ca-certificates
+        - git config --global user.email "mauro.cardillo@gmail.com"
+        - git config --global user.name "Mauro Cardillo"
+        - /bin/bash
+        - mkdir -p ~/.ssh &&  chmod 700 ~/.ssh
+        - echo -e "$GITLAB_SSH_KEY" > ~/.ssh/gitlab_ci_ed25519
+        - chmod 600 ~/.ssh/gitlab_ci_ed25519
+        - echo -e "Host gitlab.com\nHostName gitlab.com\nIdentityFile ~/.ssh/gitlab_ci_ed25519" > ~/.ssh/config
+        - echo -e "Add host gitlab.com to known_hosts"
+        - ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+        - echo -e "Setting permission for ~/.ssh/known_hosts (chmod 644)"
+        - chmod 644 ~/.ssh/known_hosts
+        - echo -e "Test GILAB Access"
+        - ssh -T git@gitlab.com
+        - git clone git@gitlab.com:maurosoft1973-docker/alpine-lftp.git /tmp/alpine-lftp
+        - cd /tmp/alpine-lftp
+        - LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
+        - echo "Generate README for Version ${LFTP_VERSION}"
+        - sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README.tpl > README_COMPILE.md1
+        - sed "s/\%ALPINE_VERSION_DATE\%/${ALPINE_VERSION_DATE}/g" README_COMPILE.md1 > README_COMPILE.md2
+        - sed "s/\%LFTP_VERSION\%/${LFTP_VERSION}/g" README_COMPILE.md2 > README_COMPILE.md3
+        - sed "s/\%LFTP_VERSION_DATE\%/${LFTP_VERSION_DATE}/g" README_COMPILE.md3 > README_COMPILE.md4
+        - sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md4 > README.md
+        - rm -rf README_COMPILE.*
+        - git add .
+        - git commit -m "Update README"
+        - git push -o ci.skip
+        - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
+        - docker pull maurosoft1973/alpine-readme-to-dockerhub
+        - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
 
-amd64 build:
-  stage: Build e Push image
-  only:
-  - master
-  script:
-  - BUILD_DATE=$(date +"%Y-%m-%d")
-  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-lftp -t maurosoft1973/alpine-lftp:amd64 -t maurosoft1973/alpine-lftp:x86_64 .
-  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
-  - docker push maurosoft1973/alpine-lftp:amd64
-  - docker push maurosoft1973/alpine-lftp:x86_64
-  - docker push maurosoft1973/alpine-lftp
+amd64 test build:
+    image: docker
+    stage: Build e Push image
+    only:
+        - master
+    variables:
+        RELEASE: "TEST"
+    script:
+        - bash ./build-image.sh -av=$JOB_ALPINE_VERSION -avd=$JOB_ALPINE_VERSION_DATE -ar=$JOB_ALPINE_RELEASE -r=$RELEASE
+
+amd64 current build:
+    stage: Build e Push image
+    variables:
+        RELEASE: "CURRENT"
+    only:
+        - master
+    script:
+        - bash ./build-image.sh -av=$JOB_ALPINE_VERSION -avd=$JOB_ALPINE_VERSION_DATE -ar=$JOB_ALPINE_RELEASE -r=$RELEASE
+
+amd64 latest build:
+    stage: Build e Push image
+    variables:
+        RELEASE: "LATEST"
+    only:
+        - master
+    script:
+        - bash ./build-image.sh -av=$JOB_ALPINE_VERSION -avd=$JOB_ALPINE_VERSION_DATE -ar=$JOB_ALPINE_RELEASE -r=$RELEASE
+

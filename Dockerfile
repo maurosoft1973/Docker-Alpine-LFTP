@@ -1,23 +1,33 @@
 FROM maurosoft1973/alpine
 
 ARG BUILD_DATE
+ARG ALPINE_RELEASE
+ARG ALPINE_RELEASE_REPOSITORY
+ARG ALPINE_VERSION
+ARG ALPINE_VERSION_DATE
+ARG LFTP_VERSION
+ARG LFTP_VERSION_DATE
 
 LABEL \
     maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     architecture="amd64/x86_64" \
-    lftp-version="4.9.2-r1" \
-    alpine-version="3.13.2" \
+    lftp-version="$LFTP_VERSION" \
+    alpine-version="$ALPINE_VERSION" \
     build="$BUILD_DATE" \
     org.opencontainers.image.title="alpine-lftp" \
-    org.opencontainers.image.description="LFTP 4.9.1 Docker image running on Alpine Linux" \
+    org.opencontainers.image.description="LFTP Docker image running on Alpine Linux" \
     org.opencontainers.image.authors="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     org.opencontainers.image.vendor="Mauro Cardillo" \
-    org.opencontainers.image.version="v4.9.2-r1" \
+    org.opencontainers.image.version="v$LFTP_VERSION" \
     org.opencontainers.image.url="https://hub.docker.com/r/maurosoft1973/alpine-lftp/" \
     org.opencontainers.image.source="https://github.com/maurosoft1973/alpine-lftp" \
     org.opencontainers.image.created=$BUILD_DATE
 
 RUN \
+    echo "" > /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_RELEASE_REPOSITORY/main" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_RELEASE_REPOSITORY/community" >> /etc/apk/repositories && \
+    apk update && \
     apk add --update --no-cache openssh-client git lftp && \
     rm -rf /tmp/* /var/cache/apk/*
 

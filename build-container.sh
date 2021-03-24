@@ -2,10 +2,12 @@
 # Description: Script for alpine lftp container
 # Maintainer: Mauro Cardillo
 #
+source ./.env
 
 # Default values of arguments
-IMAGE=maurosoft1973/alpine-lftp:test
-CONTAINER=alpine-lftp-test
+IMAGE=maurosoft1973/alpine-lftp
+IMAGE_TAG=latest
+CONTAINER=alpine-lftp
 LC_ALL=it_IT.UTF-8
 TIMEZONE=Europe/Rome
 IP=0.0.0.0
@@ -15,45 +17,44 @@ PORT=0
 for arg in "$@"
 do
     case $arg in
-        -c=*|--container=*)
+        -it=*|--image-tag=*)
+        IMAGE_TAG="${arg#*=}"
+        shift # Remove
+        ;;
+        -cn=*|--container=*)
         CONTAINER="${arg#*=}"
         shift # Remove
         ;;
-        -l=*|--lc_all=*)
+        -cl=*|--lc_all=*)
         LC_ALL="${arg#*=}"
         shift # Remove
         ;;
-        -t=*|--timezone=*)
+        -ct=*|--timezone=*)
         TIMEZONE="${arg#*=}"
         shift # Remove
         ;;
-        -i=*|--ip=*)
+        -ci=*|--ip=*)
         IP="${arg#*=}"
-        shift # Remove
-        ;;
-        -p=*|--port=*)
-        PORT="${arg#*=}"
         shift # Remove
         ;;
         -h|--help)
         echo -e "usage "
         echo -e "$0 "
-        echo -e "  -c=|--container=${CONTAINER} -> name of container"
-        echo -e "  -l=|--lc_all=${LC_ALL} -> locale"
-        echo -e "  -t=|--timezone=${TIMEZONE} -> timezone"
-        echo -e "  -i=|--ip -> ${IP} (address ip listen)"
-        echo -e "  -p=|--port -> ${PORT} (port listen)"
+        echo -e "  -it=|--image-tag -> ${IMAGE}:${IMAGE_TAG} (image with tag)"
+        echo -e "  -cn=|--container -> ${CONTAINER} (container name)"
+        echo -e "  -cl=|--lc_all -> ${LC_ALL} (container locale)"
+        echo -e "  -ct=|--timezone -> ${TIMEZONE} (container timezone)"
+        echo -e "  -ci=|--ip -> ${IP} (container ip)"
         exit 0
         ;;
     esac
 done
 
-echo "# Image               : ${IMAGE}"
-echo "# Container Name      : ${CONTAINER}"
-echo "# Locale              : ${LC_ALL}"
-echo "# Timezone            : ${TIMEZONE}"
-echo "# IP Listen           : $IP"
-echo "# Port Listen         : $PORT"
+echo "# Image                   : ${IMAGE}:${IMAGE_TAG}"
+echo "# Container Name          : ${CONTAINER}"
+echo "# Container Locale        : ${LC_ALL}"
+echo "# Container Timezone      : ${TIMEZONE}"
+echo "# Container IP            : $IP"
 
 echo -e "Check if container ${CONTAINER} exist"
 CHECK=$(docker container ps -a | grep ${CONTAINER} | wc -l)
@@ -67,8 +68,20 @@ else
     echo -e "The container ${CONTAINER} not exist"
 fi
 
+echo -e "Check if container ${CONTAINER} exist"
+CHECK=$(docker container ps -a -f "name=${CONTAINER}" | wc -l)
+if [ ${CHECK} == 2 ]; then
+    echo -e "Stop Container -> ${CONTAINER}"
+    docker stop ${CONTAINER} > /dev/null
+
+    echo -e "Remove Container -> ${CONTAINER}"
+    docker container rm ${CONTAINER} > /dev/null
+else 
+    echo -e "The container ${CONTAINER} not exist"
+fi
+
 echo -e "Create and run container"
-docker run -dit --name ${CONTAINER} -v /var/www/webag/source/resources.cdrfoodlab.com:/var/www/ -e LC_ALL=${LC_ALL} -e IP=${IP} -e PORT=${PORT} ${IMAGE}
+docker run -dit --name ${CONTAINER} -p ${IP}:${PORT}:${PORT} -v $(pwd):/var/www -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} -e IP=${IP} -e PORT=${PORT} ${IMAGE}:${IMAGE_TAG}
 
 echo -e "Sleep 5 second"
 sleep 5
@@ -79,10 +92,6 @@ echo -e "IP Address is: ${IP}";
 echo -e ""
 echo -e "Environment variable";
 docker exec -it ${CONTAINER} env
-
-echo -e ""
-echo -e "Test Locale (date)";
-docker exec -it ${CONTAINER} date
 
 echo -e ""
 echo -e "Container Logs"
