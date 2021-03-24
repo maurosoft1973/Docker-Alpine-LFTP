@@ -6,7 +6,10 @@
 
 [![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.2-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 
-The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/).
+The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/)  with [LFTP Version v4.9.2-r1](https://lftp.yar.ru/).
+
+##### Alpine Version 3.13.2 (Released Feb 17, 2021)
+##### LFTP Version 4.9.2-r1 (Released Ago, 13 2020)
 
 ## Description
 
@@ -69,7 +72,30 @@ LFTP includes the following features (some may be missed in this list):
 * mirror can download several files in parallel (--parallel option) and a single file with `pget' (--use-pget-n option).
 * Slots. Each slot is a separate session, switch using Meta-{1-9} or `slot' command. Refer to a slot site using pseudo URL slot:name.
 
-## Sample use on gitlab pipeline
+## Architectures
+
+* ```:amd64```, ```:x86_64``` - 64 bit Intel/AMD (x86_64/amd64)
+
+## Tags
+
+* ```:latest``` latest branch based (Automatic Architecture Selection)
+* ```:amd64```, ```:x86_64```  amd64 based on latest tag but amd64 architecture
+
+## Layers & Sizes
+
+![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)
+![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/maurosoft1973/alpine-lftp/amd64.svg?style=for-the-badge)
+![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp?style=for-the-badge)
+
+## Environment Variables:
+
+### Main LFTP parameters:
+* `LC_ALL`: default locale (en_GB.UTF-8)
+* `TIMEZONE`: default timezone (Europe/Brussels)
+
+## Sample Use with gitlab pipeline
+The script below allows you to synchronize files on a remote server, excluding hidden files and folders (-X .* -X .*/)
+The script restore_last_git_modified_time.sh sets the last modified date on the repository files before syncronized.
 
 ```yalm
 stages:
@@ -80,6 +106,7 @@ deploy develop:
     image: maurosoft1973/alpine-lftp
     variables:
         FTP_SERVER: 'ftp server'
+        FTP_PORT: '21'
         FTP_USERNAME: 'ftp username'
         FTP_PASSWORD: 'ftp password'
         FTP_LOCAL_FOLDER: 'local folder'
@@ -89,4 +116,23 @@ deploy develop:
     script:
         - /restore_last_git_modified_time.sh
         - lftp -e "set ssl:verify-certificate no; set ftp:use-mdtm-overloaded true; open $FTP_SERVER; user $FTP_USERNAME $FTP_PASSWORD; mirror -X .* -X .*/ --reverse --verbose --delete $FTP_LOCAL_FOLDER $FTP_REMOTE_FOLDER; bye"
+
+deploy prod:
+    stage: deploy
+    image: maurosoft1973/alpine-lftp
+    variables:
+        FTP_SERVER: 'ftp server'
+        FTP_PORT: 'ftp port'
+        FTP_USERNAME: 'ftp username'
+        FTP_PASSWORD: 'ftp password'
+        FTP_LOCAL_FOLDER: 'local folder'
+        FTP_REMOTE_FOLDER: 'remote folder'
+    only:
+        - develop
+    script:
+        - /restore_last_git_modified_time.sh
+        - lftp -e "set ssl:verify-certificate no; set sftp:auto-confirm yes; open sftp://$FTP_SERVER -p $FTP_PORT -u $FTP_USERNAME,$FTP_PASSWORD; mirror -X .* -X .*/ --reverse --verbose --delete $FTP_LOCAL_FOLDER $FTP_REMOTE_FOLDER; bye"
 ```
+
+***
+###### Last Update 24.03.2021 21:58:46
