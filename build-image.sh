@@ -87,7 +87,7 @@ if [ "$RELEASE" == "TEST" ]; then
     docker rmi -f ${IMAGE}:${LFTP_VERSION}-test > /dev/null 2>&1
 
     echo "Build Image: ${IMAGE} -> ${RELEASE}"
-    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE=${ALPINE_VERSION_DATE} --build-arg LFTP_VERSION=${LFTP_VERSION} --build-arg LFTP_VERSION_DATE=${LFTP_VERSION_DATE} -t ${IMAGE}:test -t ${IMAGE}:${LFTP_VERSION}-test -f ./Dockerfile .
+    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE="${ALPINE_VERSION_DATE}" --build-arg LFTP_VERSION=${LFTP_VERSION} --build-arg LFTP_VERSION_DATE="${LFTP_VERSION_DATE}" -t ${IMAGE}:test -t ${IMAGE}:${LFTP_VERSION}-test -f ./Dockerfile .
 
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
@@ -108,7 +108,7 @@ elif [ "$RELEASE" == "CURRENT" ]; then
     docker rmi -f ${IMAGE}:${LFTP_VERSION}-x86_64 > /dev/null 2>&1
 
     echo "Build Image: ${IMAGE}:${LFTP_VERSION} -> ${RELEASE}"
-    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE=${ALPINE_VERSION_DATE} --build-arg LFTP_VERSION=${LFTP_VERSION} --build-arg LFTP_VERSION_DATE=${LFTP_VERSION_DATE} -t ${IMAGE}:${LFTP_VERSION} -t ${IMAGE}:${LFTP_VERSION}-amd64 -t ${IMAGE}:${LFTP_VERSION}-x86_64 -f ./Dockerfile .
+    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE="${ALPINE_VERSION_DATE}" --build-arg LFTP_VERSION=${LFTP_VERSION} --build-arg LFTP_VERSION_DATE="${LFTP_VERSION_DATE}" -t ${IMAGE}:${LFTP_VERSION} -t ${IMAGE}:${LFTP_VERSION}-amd64 -t ${IMAGE}:${LFTP_VERSION}-x86_64 -f ./Dockerfile .
 
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
@@ -132,7 +132,7 @@ else
     docker rmi -f ${IMAGE}:x86_64 > /dev/null 2>&1
 
     echo "Build Image: ${IMAGE} -> ${RELEASE}"
-    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE=${ALPINE_VERSION_DATE} --build-arg LFTP_VERSION=${LFTP_VERSION} --build-arg LFTP_VERSION_DATE=${LFTP_VERSION_DATE} -t ${IMAGE}:latest -t ${IMAGE}:amd64 -t ${IMAGE}:x86_64 -f ./Dockerfile .
+    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE="${ALPINE_VERSION_DATE}" --build-arg LFTP_VERSION=${LFTP_VERSION} --build-arg LFTP_VERSION_DATE="${LFTP_VERSION_DATE}" -t ${IMAGE}:latest -t ${IMAGE}:amd64 -t ${IMAGE}:x86_64 -f ./Dockerfile .
 
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
