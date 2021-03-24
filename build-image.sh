@@ -57,12 +57,15 @@ do
         echo -e "  -avd=|--alpine-version-date -> ${ALPINE_VERSION_DATE} (alpine version date)"
         echo -e "  -r=|--release -> ${RELEASE} (release of image.Values: TEST, CURRENT, LATEST)"
         echo -e ""
-        echo -e "  Version of LFTP installed is ${LFTP_VERSIONS_DATE["$ALPINE_RELEASE"]}"
+        echo -e "  Version of LFTP installed is ${LFTP_VERSIONS["$ALPINE_RELEASE"]}"
         echo -e "  Version of LFTP Date is ${LFTP_VERSIONS_DATE["$ALPINE_RELEASE"]}"
         exit 0
         ;;
     esac
 done
+
+LFTP_VERSION=${LFTP_VERSIONS["$ALPINE_RELEASE"]}
+LFTP_VERSION_DATE=${LFTP_VERSIONS_DATE["$ALPINE_RELEASE"]}
 
 echo "# Image               : ${IMAGE}"
 echo "# Image Release       : ${RELEASE}"
