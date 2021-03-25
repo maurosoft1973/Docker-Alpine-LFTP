@@ -5,7 +5,7 @@
 source ./.env
 
 BUILD_DATE=$(date +"%Y-%m-%d")
-IMAGE=maurosoft1973/lftp
+IMAGE=maurosoft1973/alpine-lftp
 
 #The version of PHP
 declare -A LFTP_VERSIONS
