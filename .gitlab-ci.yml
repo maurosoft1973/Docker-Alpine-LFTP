@@ -38,8 +38,8 @@ update readme:
         - chmod 644 ~/.ssh/known_hosts
         - echo -e "Test GILAB Access"
         - ssh -T git@gitlab.com
-        - git clone git@gitlab.com:maurosoft1973-docker/alpine-lftp.git /tmp/alpine-lftp
-        - cd /tmp/alpine-lftp
+        - git clone git@gitlab.com:maurosoft1973-docker/$DOCKERHUB_REPO_NAME.git /tmp/$DOCKERHUB_REPO_NAME
+        - cd /tmp/$DOCKERHUB_REPO_NAME
         - LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
         - echo "Generate README for Version ${LFTP_VERSION}"
         - sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README.tpl > README_COMPILE.md1

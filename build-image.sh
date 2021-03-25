@@ -9,14 +9,13 @@ IMAGE=maurosoft1973/alpine-lftp
 
 #The version of PHP
 declare -A LFTP_VERSIONS
-LFTP_VERSIONS["edge"]="4.9.2-r1"
-LFTP_VERSIONS["3.13"]="4.9.2-r1"
-LFTP_VERSIONS["3.12"]="4.9.1-r0"
-LFTP_VERSIONS["3.11"]="4.8.4-r2"
-LFTP_VERSIONS["3.10"]="4.8.4-r2"
-LFTP_VERSIONS["3.9"]="4.8.4-r1"
-LFTP_VERSIONS["3.8"]="4.8.3-r2"
-LFTP_VERSIONS["3.7"]="4.8.3-r1"
+LFTP_VERSIONS["edge"]="4.9.2"
+LFTP_VERSIONS["3.13"]="4.9.2"
+LFTP_VERSIONS["3.12"]="4.9.1"
+LFTP_VERSIONS["3.11"]="4.8.4"
+LFTP_VERSIONS["3.10"]="4.8.4"
+LFTP_VERSIONS["3.9"]="4.8.4"
+LFTP_VERSIONS["3.8"]="4.8.3"
 
 #The date of version PHP
 declare -A LFTP_VERSIONS_DATE
@@ -27,7 +26,6 @@ LFTP_VERSIONS_DATE["3.11"]=""
 LFTP_VERSIONS_DATE["3.10"]=""
 LFTP_VERSIONS_DATE["3.9"]=""
 LFTP_VERSIONS_DATE["3.8"]=""
-LFTP_VERSIONS_DATE["3.7"]=""
 
 # Loop through arguments and process them
 for arg in "$@"
