@@ -4,12 +4,12 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-lftp.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-lftp.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.2-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.3-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 
-The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/)  with [LFTP Version v4.9.2-r1](https://lftp.yar.ru/).
+The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/)  with [LFTP Version v4.9.2](https://lftp.yar.ru/).
 
-##### Alpine Version 3.13.2 (Released Feb 17, 2021)
-##### LFTP Version 4.9.2-r1 (Released Ago, 13 2020)
+##### Alpine Version 3.13.3 (Released Mar 25, 2021)
+##### LFTP Version 4.9.2 (Released Ago 13, 2020)
 
 ## Description
 
@@ -84,7 +84,6 @@ LFTP includes the following features (some may be missed in this list):
 ## Layers & Sizes
 
 ![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)
-![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/maurosoft1973/alpine-lftp/amd64.svg?style=for-the-badge)
 ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp?style=for-the-badge)
 
 ## Environment Variables:
@@ -135,4 +134,4 @@ deploy prod:
 ```
 
 ***
-###### Last Update 25.03.2021 15:14:01
+###### Last Update 26.03.2021 10:09:42
