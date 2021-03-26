@@ -2,30 +2,17 @@
 # Description: Build image and push to repository
 # Maintainer: Mauro Cardillo
 # DOCKER_HUB_USER and DOCKER_HUB_PASSWORD is user environment variable
+echo "Get Remote Environment Variable"
+wget -q "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/.env" -O ./.env
 source ./.env
+
+echo "Get Remote Settings"
+wget -q "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/settings.sh" -O ./settings.sh
+chmod +x ./settings.sh
+source ./settings.sh
 
 BUILD_DATE=$(date +"%Y-%m-%d")
 IMAGE=maurosoft1973/alpine-lftp
-
-#The version of PHP
-declare -A LFTP_VERSIONS
-LFTP_VERSIONS["edge"]="4.9.2"
-LFTP_VERSIONS["3.13"]="4.9.2"
-LFTP_VERSIONS["3.12"]="4.9.1"
-LFTP_VERSIONS["3.11"]="4.8.4"
-LFTP_VERSIONS["3.10"]="4.8.4"
-LFTP_VERSIONS["3.9"]="4.8.4"
-LFTP_VERSIONS["3.8"]="4.8.3"
-
-#The date of version PHP
-declare -A LFTP_VERSIONS_DATE
-LFTP_VERSIONS_DATE["edge"]=""
-LFTP_VERSIONS_DATE["3.13"]=""
-LFTP_VERSIONS_DATE["3.12"]=""
-LFTP_VERSIONS_DATE["3.11"]=""
-LFTP_VERSIONS_DATE["3.10"]=""
-LFTP_VERSIONS_DATE["3.9"]=""
-LFTP_VERSIONS_DATE["3.8"]=""
 
 # Loop through arguments and process them
 for arg in "$@"
@@ -50,13 +37,12 @@ do
         -h|--help)
         echo -e "usage "
         echo -e "$0 "
-        echo -e "  -av=|--alpine-release -> ${ALPINE_RELEASE} (alpine release)"
+        echo -e "  -ar=|--alpine-release -> ${ALPINE_RELEASE} (alpine release)"
         echo -e "  -av=|--alpine-version -> ${ALPINE_VERSION} (alpine version)"
         echo -e "  -avd=|--alpine-version-date -> ${ALPINE_VERSION_DATE} (alpine version date)"
         echo -e "  -r=|--release -> ${RELEASE} (release of image.Values: TEST, CURRENT, LATEST)"
         echo -e ""
-        echo -e "  Version of LFTP installed is ${LFTP_VERSIONS["$ALPINE_RELEASE"]}"
-        echo -e "  Version of LFTP Date is ${LFTP_VERSIONS_DATE["$ALPINE_RELEASE"]}"
+        echo -e "  Version of LFTP installed is ${LFTP_VERSIONS["$ALPINE_RELEASE"]} (Released ${LFTP_VERSIONS_DATE["$ALPINE_RELEASE"]})"
         exit 0
         ;;
     esac
@@ -147,3 +133,6 @@ else
     echo "Push Image -> ${IMAGE}:latest"
     docker push ${IMAGE}:latest
 fi
+
+rm -rf ./.env
+rm -rf ./settings.sh

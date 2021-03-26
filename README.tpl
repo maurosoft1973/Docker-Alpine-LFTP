@@ -84,7 +84,6 @@ LFTP includes the following features (some may be missed in this list):
 ## Layers & Sizes
 
 ![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)
-![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/maurosoft1973/alpine-lftp/amd64.svg?style=for-the-badge)
 ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp?style=for-the-badge)
 
 ## Environment Variables:

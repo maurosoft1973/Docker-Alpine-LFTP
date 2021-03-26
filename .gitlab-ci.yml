@@ -4,10 +4,18 @@ stages:
     - Build e Push image
     - Documentation
 
+variables:
+    HTTP_ENV: "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/.env"
+    HTTP_SETTINGS: "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/settings.sh"
+
 before_script:
-    - apk add bash
-    - echo "Read Environment Variable from .env file"
-    - source ./.env
+    - apk add bash curl
+    - /bin/bash
+    - echo "Get Environment Variable from .env.alpine"
+    - wget -q $HTTP_ENV -O ./.env
+    - set -a;
+    - source ./.env;
+    - set +a;
     - export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
     - export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
     - export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
