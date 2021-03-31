@@ -17,8 +17,6 @@ IMAGE_TAG=latest
 CONTAINER=alpine-lftp
 LC_ALL=it_IT.UTF-8
 TIMEZONE=Europe/Rome
-IP=0.0.0.0
-PORT=0
 
 # Loop through arguments and process them
 for arg in "$@"
@@ -40,10 +38,6 @@ do
         TIMEZONE="${arg#*=}"
         shift # Remove
         ;;
-        -ci=*|--ip=*)
-        IP="${arg#*=}"
-        shift # Remove
-        ;;
         -h|--help)
         echo -e "usage "
         echo -e "$0 "
@@ -51,7 +45,6 @@ do
         echo -e "  -cn=|--container -> ${CONTAINER} (container name)"
         echo -e "  -cl=|--lc_all -> ${LC_ALL} (container locale)"
         echo -e "  -ct=|--timezone -> ${TIMEZONE} (container timezone)"
-        echo -e "  -ci=|--ip -> ${IP} (container ip)"
         exit 0
         ;;
     esac
@@ -61,7 +54,6 @@ echo "# Image                   : ${IMAGE}:${IMAGE_TAG}"
 echo "# Container Name          : ${CONTAINER}"
 echo "# Container Locale        : ${LC_ALL}"
 echo "# Container Timezone      : ${TIMEZONE}"
-echo "# Container IP            : $IP"
 
 echo -e "Check if container ${CONTAINER} exist"
 CHECK=$(docker container ps -a | grep ${CONTAINER} | wc -l)
@@ -75,20 +67,8 @@ else
     echo -e "The container ${CONTAINER} not exist"
 fi
 
-echo -e "Check if container ${CONTAINER} exist"
-CHECK=$(docker container ps -a -f "name=${CONTAINER}" | wc -l)
-if [ ${CHECK} == 2 ]; then
-    echo -e "Stop Container -> ${CONTAINER}"
-    docker stop ${CONTAINER} > /dev/null
-
-    echo -e "Remove Container -> ${CONTAINER}"
-    docker container rm ${CONTAINER} > /dev/null
-else 
-    echo -e "The container ${CONTAINER} not exist"
-fi
-
 echo -e "Create and run container"
-docker run -dit --name ${CONTAINER} -p ${IP}:${PORT}:${PORT} -v $(pwd):/var/www -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} -e IP=${IP} -e PORT=${PORT} ${IMAGE}:${IMAGE_TAG}
+docker run -dit --name ${CONTAINER} -v $(pwd):/var/www -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} ${IMAGE}:${IMAGE_TAG}
 
 echo -e "Sleep 5 second"
 sleep 5

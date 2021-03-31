@@ -20,7 +20,7 @@ LABEL \
     org.opencontainers.image.vendor="Mauro Cardillo" \
     org.opencontainers.image.version="v$LFTP_VERSION" \
     org.opencontainers.image.url="https://hub.docker.com/r/maurosoft1973/alpine-lftp/" \
-    org.opencontainers.image.source="https://github.com/maurosoft1973/alpine-lftp" \
+    org.opencontainers.image.source="https://gitlab.com/maurosoft1973-docker/alpine-lftp" \
     org.opencontainers.image.created=$BUILD_DATE
 
 RUN \
