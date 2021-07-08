@@ -4,11 +4,11 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-lftp.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-lftp.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.5-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.14.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 
 The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/)  with [LFTP Version v4.9.2](https://lftp.yar.ru/).
 
-##### Alpine Version 3.13.5 (Released Apr 14, 2021)
+##### Alpine Version 3.14.0 (Released Jun 14, 2021)
 ##### LFTP Version 4.9.2 (Released Ago 13, 2020)
 
 ## Description
@@ -134,4 +134,4 @@ deploy prod:
 ```
 
 ***
-###### Last Update 01.07.2021 03:03:40
+###### Last Update 08.07.2021 03:04:22
