@@ -74,17 +74,53 @@ LFTP includes the following features (some may be missed in this list):
 
 ## Architectures
 
-* ```:amd64```, ```:x86_64``` - 64 bit Intel/AMD (x86_64/amd64)
+* ```:aarch64``` - 64 bit ARM
+* ```:armhf```   - 32 bit ARM v6
+* ```:armv7```   - 32 bit ARM v7
+* ```:ppc64le``` - 64 bit PowerPC
+* ```:x86```     - 32 bit Intel/AMD
+* ```:x86_64```  - 64 bit Intel/AMD (x86_64/amd64)
 
 ## Tags
 
-* ```:latest``` latest branch based (Automatic Architecture Selection)
-* ```:amd64```, ```:x86_64```  amd64 based on latest tag but amd64 architecture
+* ```:latest```         latest branch based (Automatic Architecture Selection)
+* ```:aarch64```        latest 64 bit ARM
+* ```:armhf```          latest 32 bit ARM v6
+* ```:armv7```          latest 32 bit ARM v7
+* ```:ppc64le```        latest 64 bit PowerPC
+* ```:x86```            latest 32 bit Intel/AMD
+* ```:x86_64```         latest 64 bit Intel/AMD
+* ```:test```           test branch based (Automatic Architecture Selection)
+* ```:test-aarch64```   test 64 bit ARM
+* ```:test-armhf```     test 32 bit ARM v6
+* ```:test-armv7```     test 32 bit ARM v7
+* ```:test-ppc64le```   test 64 bit PowerPC
+* ```:test-x86```       test 32 bit Intel/AMD
+* ```:test-x86_64```    test 64 bit Intel/AMD
+* ```:%ALPINE_VERSION%``` %ALPINE_VERSION% branch based (Automatic Architecture Selection)
+* ```:%ALPINE_VERSION%-aarch64```   %ALPINE_VERSION% 64 bit ARM
+* ```:%ALPINE_VERSION%-armhf```     %ALPINE_VERSION% 32 bit ARM v6
+* ```:%ALPINE_VERSION%-armv7```     %ALPINE_VERSION% 32 bit ARM v7
+* ```:%ALPINE_VERSION%-ppc64le```   %ALPINE_VERSION% 64 bit PowerPC
+* ```:%ALPINE_VERSION%-x86```       %ALPINE_VERSION% 32 bit Intel/AMD
+* ```:%ALPINE_VERSION%-x86_64```    %ALPINE_VERSION% 64 bit Intel/AMD
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%``` %ALPINE_VERSION%-%LFTP_VERSION% branch based (Automatic Architecture Selection)
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%-aarch64```   %ALPINE_VERSION% 64 bit ARM
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%-armhf```     %ALPINE_VERSION% 32 bit ARM v6
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%-armv7```     %ALPINE_VERSION% 32 bit ARM v7
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%-ppc64le```   %ALPINE_VERSION% 64 bit PowerPC
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%-x86```       %ALPINE_VERSION% 32 bit Intel/AMD
+* ```:%ALPINE_VERSION%-%LFTP_VERSION%-x86_64```    %ALPINE_VERSION% 64 bit Intel/AMD
 
 ## Layers & Sizes
 
-![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)
-![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp?style=for-the-badge)
+| Version                                                                               | Size                                                                                                                 |
+|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| ![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp/latest?style=for-the-badge)  |
+| ![Version](https://img.shields.io/badge/version-armv6-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp/armhf?style=for-the-badge)   |
+| ![Version](https://img.shields.io/badge/version-armv7-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp/armv7?style=for-the-badge)   |
+| ![Version](https://img.shields.io/badge/version-ppc64le-blue.svg?style=for-the-badge) | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp/ppc64le?style=for-the-badge) |
+| ![Version](https://img.shields.io/badge/version-x86-blue.svg?style=for-the-badge)     | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-lftp/x86?style=for-the-badge)     |
 
 ## Environment Variables:
 
