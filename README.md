@@ -136,7 +136,7 @@ The script restore_last_git_modified_time.sh sets the last modified date on the 
 stages:
     - deploy
 
-deploy develop:
+deploy-develop:
     stage: deploy
     image: maurosoft1973/alpine-lftp
     variables:
@@ -152,7 +152,7 @@ deploy develop:
         - /restore_last_git_modified_time.sh
         - lftp -e "set ssl:verify-certificate no; set ftp:use-mdtm-overloaded true; open $FTP_SERVER; user $FTP_USERNAME $FTP_PASSWORD; mirror -X .* -X .*/ --reverse --verbose --delete $FTP_LOCAL_FOLDER $FTP_REMOTE_FOLDER; bye"
 
-deploy prod:
+deploy-prod:
     stage: deploy
     image: maurosoft1973/alpine-lftp
     variables:
@@ -163,11 +163,11 @@ deploy prod:
         FTP_LOCAL_FOLDER: 'local folder'
         FTP_REMOTE_FOLDER: 'remote folder'
     only:
-        - develop
+        - prod
     script:
         - /restore_last_git_modified_time.sh
         - lftp -e "set ssl:verify-certificate no; set sftp:auto-confirm yes; open sftp://$FTP_SERVER -p $FTP_PORT -u $FTP_USERNAME,$FTP_PASSWORD; mirror -X .* -X .*/ --reverse --verbose --delete $FTP_LOCAL_FOLDER $FTP_REMOTE_FOLDER; bye"
 ```
 
 ***
-###### Last Update 15.04.2022 21:03:46
+###### Last Update 15.04.2022 21:15:57
