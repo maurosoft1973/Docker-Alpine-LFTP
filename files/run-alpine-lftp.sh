@@ -3,6 +3,8 @@
 source /scripts/init-alpine.sh
 
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
-echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+echo "Host *" >> ~/.ssh/config
+echo "     StrictHostKeyChecking no" >> ~/.ssh/config
+echo "     HostKeyAlgorithms=+ssh-dss" >> ~/.ssh/config
 
 /bin/sh
