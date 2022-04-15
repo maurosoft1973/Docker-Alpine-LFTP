@@ -83,6 +83,8 @@ push-test:
         - master
     variables:
         RELEASE: "TEST"
+    needs:
+        - build-test
     script:
         - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
         - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
@@ -98,6 +100,8 @@ push-current:
         - master
     variables:
         RELEASE: "CURRENT"
+    needs:
+        - build-current
     script:
         - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
         - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
@@ -113,6 +117,8 @@ push-latest:
         - master
     variables:
         RELEASE: "LATEST"
+    needs:
+        - build-latest
     script:
         - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
         - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
@@ -133,6 +139,8 @@ readme:
         DOCKERHUB_SHORT_DESCRIPTION: "LFTP Docker Image with Multilanguage e Timezone support running on Alpine Linux"
     only:
         - master
+    needs:
+        - push-latest
     script:
         - apk add --no-cache git openssh-client ca-certificates
         - git config --global user.email "mauro.cardillo@gmail.com"
