@@ -1,0 +1,23 @@
+schemaVersion: 2.0.0
+
+fileExistenceTests:  
+  - name: 'restore_last_git_modified_time.sh exists and has correct permissions'
+    path: '/usr/local/sbin/git_restore_last_modified_time'
+    shouldExist: true
+    permissions: '-rwxrwxrwx'
+    uid: 0    
+    gid: 0
+  - name: 'run-alpine-lftp.sh exists and has correct permissions'
+    path: '/scripts/run-alpine-lftp.sh'
+    shouldExist: true
+    permissions: '-rwxrwxrwx'
+    uid: 0    
+    gid: 0
+
+fileContentTests:
+  - name: 'Alpine Version Testing'
+    path: '/etc/os-release'
+    expectedContents: ['.*VERSION_ID=3.17.3.*']
+
+metadataTest:
+    entrypoint: ['/scripts/run-alpine-lftp.sh']

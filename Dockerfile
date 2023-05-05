@@ -17,7 +17,7 @@ LABEL \
     alpine-version="$ALPINE_VERSION" \
     build="$BUILD_DATE" \
     org.opencontainers.image.title="alpine-lftp" \
-    org.opencontainers.image.description="LFTP Docker image running on Alpine Linux" \
+    org.opencontainers.image.description="LFTP Docker Image with Multilanguage e Timezone support running on Alpine Linux" \
     org.opencontainers.image.authors="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     org.opencontainers.image.vendor="Mauro Cardillo" \
     org.opencontainers.image.version="v$LFTP_VERSION" \
