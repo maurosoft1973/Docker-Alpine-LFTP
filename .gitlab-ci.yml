@@ -1,173 +1,255 @@
-image: maurosoft1973/docker-with-buildx2
+image: docker:23.0.4
 
 variables:
+    # DOCKER_HOST
+    # DOCKER_HUB_USERNAME
+    # DOCKER_HUB_PASSWORD
+    # GITLAB_TOKEN
+    DOCKER_HOST: $DOCKER_HOST
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKER_DRIVER: overlay2
+    DOCKER_IMAGE_TEST: registry.gitlab.com/maurosoft1973-docker/alpine-lftp:test
 
+services:
+    - name: docker:23.0.4-dind
+      alias: docker
+
+include:
+    - template: Jobs/Build.gitlab-ci.yml
+    - template: Security/Container-Scanning.gitlab-ci.yml
+    
 stages:
     - build
-    - push
+    - test
+    - deploy
     - readme
+    - clean
 
 before_script:
-    - apk add --no-cache bash curl file jq
+    - apk add --no-cache git bash curl file
     - /bin/bash
-    - ENV_ALPINE_VERSION=.${CI_ALPINE_VERSION:-""}
-    - >
-      if [ "${CI_ALPINE_VERSION:-""}" == "" ]; then 
-         ENV_ALPINE_VERSION=.env
-      else
-         ENV_ALPINE_VERSION=.env.${CI_ALPINE_VERSION:-""}
-      fi
-    - echo ${ENV_ALPINE_VERSION}
+    - ENV_JOB=.${CI_ALPINE_VERSION:-""}
+    - |
+        if [ "${CI_ALPINE_VERSION:-""}" == "" ]; then 
+            ENV_JOB=.env
+        else
+            ENV_JOB=.env.${CI_ALPINE_VERSION:-""}
+        fi
     - set -a;
-    - source ./${ENV_ALPINE_VERSION};
+    - source ./${ENV_JOB};
     - set +a;
-    - export JOB_DOCKER_IMAGE=${CI_DOCKER_IMAGE:-"$DOCKER_IMAGE"}
-    - export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
-    - export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
-    - export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
-    - export JOB_LFTP_VERSION=${CI_LFTP_VERSION:-"$LFTP_VERSION"}
-    - export JOB_LFTP_VERSION_DATE=${CI_LFTP_VERSION_DATE:-"$LFTP_VERSION_DATE"}
-    - echo "DOCKER_IMAGE:$JOB_DOCKER_IMAGE"
-    - echo "ALPINE_VERSION:$JOB_ALPINE_VERSION"
-    - echo "ALPINE_VERSION_DATE:$JOB_ALPINE_VERSION_DATE"
-    - echo "ALPINE_RELEASE:$JOB_ALPINE_RELEASE"
-    - echo "LFTP_VERSION:$JOB_LFTP_VERSION"
-    - echo "LFTP_VERSION_DATE:$JOB_LFTP_VERSION_DATE"
+    - |
+      export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
+      export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
+      export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
+      export JOB_LFTP_VERSION=${CI_LFTP_VERSION:-"$LFTP_VERSION"}
+      export JOB_LFTP_VERSION_DATE=${CI_LFTP_VERSION_DATE:-"$LFTP_VERSION_DATE"}
 
-build-test:
+build:
     stage: build
-    only:
-        - master
-    variables:
-        RELEASE: "TEST"
+    image: docker:23.0.4
+    tags:
+        - dind64
     script:
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
+        - BUILD_DATE=$(date +"%Y-%m-%d")
+        - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - |
+            while IFS=" " read -r JOB_ARCH
+            do
+                PLATFORM="linux/amd64"
+                if [ "${JOB_ARCH}" == "aarch64" ]; then
+                    PLATFORM="linux/arm64"
+                elif [ "${JOB_ARCH}" == "armhf" ]; then
+                    PLATFORM="linux/arm/v6"
+                elif [ "${JOB_ARCH}" == "armv7" ]; then
+                    PLATFORM="linux/arm/v7"
+                elif [ "${JOB_ARCH}" == "ppc64le" ]; then
+                    PLATFORM="linux/ppc64le"
+                elif [ "${JOB_ARCH}" == "x86" ]; then
+                    PLATFORM="linux/386"
+                elif [ "${JOB_ARCH}" == "x86_64" ]; then
+                    PLATFORM="linux/amd64"
+                fi
 
-build-current:
-    stage: build
-    only:
-        - master
-    variables:
-        RELEASE: "CURRENT"
-    script:
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
+                echo "Build Image for $JOB_ARCH -> ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_ARCH}"
+                docker build --platform ${PLATFORM} \
+                    --build-arg BUILD_DATE=${BUILD_DATE} \
+                    --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
+                    --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
+                    --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                    --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
+                    --build-arg LFTP_VERSION="${JOB_LFTP_VERSION}" \
+                    --build-arg LFTP_VERSION_DATE="${JOB_LFTP_VERSION_DATE}" \
+                    --push \
+                    -t ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_ARCH} \
+                    -f ./Dockerfile .
 
-build-latest:
-    stage: build
-    only:
-        - master
-    variables:
-        RELEASE: "LATEST"
-    script:
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
+            done < "./.arch"
+        - |
+            echo "Push Manifest Test -> ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test"
+            docker manifest create ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test \
+                --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-aarch64 \
+                --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-armhf \
+                --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-armv7 \
+                --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-ppc64le \
+                --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-x86 \
+                --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-x86_64
+                
+            docker manifest push ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test
 
-push-test:
-    stage: push
-    only:
-        - master
-    variables:
-        RELEASE: "TEST"
-    needs:
-        - build-test
+container_test:
+    stage: test
+    image: docker:23.0.4
+    needs: ["build"]
+    tags:
+        - dind64
     script:
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-manifest.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -av=$JOB_ALPINE_VERSION -r=$RELEASE
+        - |
+          docker pull $DOCKER_IMAGE_TEST
+        - apk add --no-cache curl
+        - |
+          curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64
+          chmod +x container-structure-test-linux-amd64
+          mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+        - |
+          container-structure-test -c test.yaml --image $DOCKER_IMAGE_TEST --test-report junit-test-result.xml --output junit test
+    artifacts:
+        when: always
+        paths:
+            - $CI_PROJECT_DIR/junit-test-result.xml
+        reports:
+            junit:
+                - $CI_PROJECT_DIR/junit-test-result.xml
 
-push-current:
-    stage: push
-    only:
-        - master
+container_scanning:
+    needs: ["build"]
+    before_script: []
+    tags:
+        - dind64
     variables:
-        RELEASE: "CURRENT"
-    needs:
-        - build-current
-    script:
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-manifest.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -av=$JOB_ALPINE_VERSION -r=$RELEASE
+        CS_IMAGE: $DOCKER_IMAGE_TEST
 
-push-latest:
-    stage: push
-    only:
-        - master
-    variables:
-        RELEASE: "LATEST"
-    needs:
-        - build-latest
+deploy:
+    stage: deploy
+    image: docker:23.0.4
+    needs: ["build","container_test"]
+    tags:
+        - dind64
     script:
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -lv=$JOB_LFTP_VERSION -ld=$JOB_LFTP_VERSION_DATE -r=$RELEASE
-        - bash ./build-manifest.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -av=$JOB_ALPINE_VERSION -r=$RELEASE
+        - BUILD_DATE=$(date +"%Y-%m-%d")
+        - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+        - |
+            while IFS=" " read -r JOB_ARCH
+            do
+                PLATFORM="linux/amd64"
+                if [ "${JOB_ARCH}" == "aarch64" ]; then
+                    PLATFORM="linux/arm64"
+                elif [ "${JOB_ARCH}" == "armhf" ]; then
+                    PLATFORM="linux/arm/v6"
+                elif [ "${JOB_ARCH}" == "armv7" ]; then
+                    PLATFORM="linux/arm/v7"
+                elif [ "${JOB_ARCH}" == "ppc64le" ]; then
+                    PLATFORM="linux/ppc64le"
+                elif [ "${JOB_ARCH}" == "x86" ]; then
+                    PLATFORM="linux/386"
+                elif [ "${JOB_ARCH}" == "x86_64" ]; then
+                    PLATFORM="linux/amd64"
+                fi
+
+                echo "Build Image for $JOB_ARCH -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_ARCH}"
+
+                docker build --platform ${PLATFORM} \
+                    --build-arg BUILD_DATE=${BUILD_DATE} \
+                    --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
+                    --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
+                    --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                    --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
+                    --build-arg LFTP_VERSION="${JOB_LFTP_VERSION}" \
+                    --build-arg LFTP_VERSION_DATE="${JOB_LFTP_VERSION_DATE}" \
+                    --push \
+                    -t ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-${JOB_ARCH} \
+                    -t ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_ARCH} \
+                    -t ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ARCH} \
+                    -f ./Dockerfile .
+
+            done < "./.arch"
+        - |
+            echo "Push Manifest Current -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}"
+            docker manifest create ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION} \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-aarch64 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-armhf \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-armv7 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-ppc64le \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-x86 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_LFTP_VERSION}-x86_64
+        - |
+            echo "Push Manifest Current -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}"
+            docker manifest create ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION} \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-aarch64 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-armhf \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-armv7 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-ppc64le \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-x86 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-x86_64
+
+            docker manifest push ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}
+        - |
+            echo "Push Manifest Latest -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}"
+            docker manifest create ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE} \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:aarch64 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:armhf \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:armv7 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:ppc64le \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:x86 \
+                --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:x86_64
+
+            docker manifest push ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}
 
 readme:
     stage: readme
+    image: docker:23.0.4
+    needs: ["deploy"]
     variables:
-        GITLAB_SSH_KEY: "$GITLAB_CI_SSH_KEY"
-        DOCKERHUB_USERNAME: "$DOCKER_HUB_USER"
-        DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
         DOCKERHUB_REPO_PREFIX: "maurosoft1973"
         DOCKERHUB_REPO_NAME: "alpine-lftp"
         DOCKERHUB_SHORT_DESCRIPTION: "LFTP Docker Image with Multilanguage e Timezone support running on Alpine Linux"
+    tags:
+        - dind64
+    script:
+        - export LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
+        - |
+          git config --global user.email "mauro.cardillo@gmail.com"
+          git config --global user.name "Mauro Cardillo"
+          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git /tmp/repository
+        - cd /tmp/repository
+        - echo "Generate README for Alpine Version ${ALPINE_VERSION} and LFTP Version ${LFTP_VERSION}"
+        - |
+          sed "s/\%ALPINE_RELEASE\%/${JOB_ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
+          sed "s/\%ALPINE_VERSION\%/${JOB_ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
+          sed "s/\%ALPINE_VERSION_DATE\%/${JOB_ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
+          sed "s/\%LFTP_VERSION\%/${LFTP_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
+          sed "s/\%LFTP_VERSION_DATE\%/${LFTP_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
+          sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
+          rm -rf README_COMPILE.*
+        - |
+          git add .
+          git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and LFTP Version ${LFTP_VERSION}"
+          git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
+        - |
+          FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
+          docker pull maurosoft1973/alpine-readme-to-dockerhub
+          docker run --rm -e DOCKERHUB_USERNAME="$DOCKER_HUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKER_HUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+
+clean:
+    stage: clean
+    needs: ["deploy"]
+    allow_failure: true
+    tags:
+        - dind64
     only:
         - master
-    needs:
-        - push-latest
     script:
-        - apk add --no-cache git openssh-client ca-certificates
-        - git config --global user.email "mauro.cardillo@gmail.com"
-        - git config --global user.name "Mauro Cardillo"
-        - /bin/bash
-        - mkdir -p ~/.ssh &&  chmod 700 ~/.ssh
-        - echo -e "$GITLAB_SSH_KEY" > ~/.ssh/gitlab_ci_ed25519
-        - chmod 600 ~/.ssh/gitlab_ci_ed25519
-        - echo -e "Host gitlab.com\nHostName gitlab.com\nIdentityFile ~/.ssh/gitlab_ci_ed25519" > ~/.ssh/config
-        - echo -e "Add host gitlab.com to known_hosts"
-        - ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
-        - echo -e "Setting permission for ~/.ssh/known_hosts (chmod 644)"
-        - chmod 644 ~/.ssh/known_hosts
-        - git clone git@gitlab.com:maurosoft1973-docker/$DOCKERHUB_REPO_NAME.git /tmp/$DOCKERHUB_REPO_NAME
-        - cd /tmp/$DOCKERHUB_REPO_NAME
-        - LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
-        - echo "Generate README for Version ${ALPINE_VERSION}"
-        - sed "s/\%ALPINE_RELEASE\%/${ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
-        - sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
-        - sed "s/\%ALPINE_VERSION_DATE\%/${ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
-        - sed "s/\%LFTP_VERSION\%/${LFTP_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
-        - sed "s/\%LFTP_VERSION_DATE\%/${LFTP_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
-        - sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
-        - rm -rf README_COMPILE.*
-        - git add .
-        - git commit -m "Update README"
-        - git push -o ci.skip
-        - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
-        - docker pull maurosoft1973/alpine-readme-to-dockerhub
-        - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+        - |
+          docker images ${DOCKER_HUB_URL}/${DOCKER_HUB_PREFIX}/${DOCKER_IMAGE} -q | xargs --no-run-if-empty docker rmi -f
+          docker volume ls -qf dangling=true | xargs --no-run-if-empty docker volume rm

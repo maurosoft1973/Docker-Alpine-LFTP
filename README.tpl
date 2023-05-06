@@ -127,6 +127,7 @@ LFTP includes the following features (some may be missed in this list):
 ### Main LFTP parameters:
 * `LC_ALL`: default locale (en_GB.UTF-8)
 * `TIMEZONE`: default timezone (Europe/Brussels)
+* `SHELL_TERMINAL`: default shell (bin/sh)
 
 ## Sample Use with gitlab pipeline
 The script below allows you to synchronize files on a remote server, excluding hidden files and folders (-X .* -X .*/)
@@ -141,7 +142,7 @@ deploy-develop:
     image: maurosoft1973/alpine-lftp
     variables:
         FTP_SERVER: 'ftp server'
-        FTP_PORT: '21'
+        FTP_PORT: 'ftp port'
         FTP_USERNAME: 'ftp username'
         FTP_PASSWORD: 'ftp password'
         FTP_LOCAL_FOLDER: 'local folder'
