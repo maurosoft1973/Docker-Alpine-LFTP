@@ -74,6 +74,7 @@ build:
 
                 echo "Build Image for $JOB_ARCH -> ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_ARCH}"
                 docker build --platform ${PLATFORM} \
+                    --build-arg DOCKER_ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                     --build-arg BUILD_DATE=${BUILD_DATE} \
                     --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
                     --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
@@ -160,6 +161,7 @@ deploy:
                 echo "Build Image for $JOB_ARCH -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_ALPINE_VERSION}-${JOB_ARCH}"
 
                 docker build --platform ${PLATFORM} \
+                    --build-arg DOCKER_ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                     --build-arg BUILD_DATE=${BUILD_DATE} \
                     --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
                     --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
