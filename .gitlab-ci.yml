@@ -103,18 +103,30 @@ container_test:
     stage: test
     image: docker:23.0.4
     needs: ["build"]
+    rules:
+        - if: ($CI_PIPELINE_SOURCE == 'web')
+          when: always
+        - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
+          changes:
+            - README.tpl
+          when: never
+        - when: always
     tags:
         - dind64
     script:
-        - |
-          docker pull $DOCKER_IMAGE_TEST
         - apk add --no-cache curl
         - |
-          curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64
-          chmod +x container-structure-test-linux-amd64
-          mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+            curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64
+            chmod +x container-structure-test-linux-amd64
+            mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
         - |
-          container-structure-test -c test.yaml --image $DOCKER_IMAGE_TEST --test-report junit-test-result.xml --output junit test
+            docker pull $DOCKER_IMAGE_TEST
+        - |
+            if [ -f test.${JOB_ALPINE_VERSION}.yaml ]; then
+                container-structure-test -c test.${JOB_ALPINE_VERSION}.yaml --image $DOCKER_IMAGE_TEST --test-report junit-test-result.xml --output junit test
+            else     
+                container-structure-test -c test.yaml --image $DOCKER_IMAGE_TEST --test-report junit-test-result.xml --output junit test
+            fi
     artifacts:
         when: always
         paths:
@@ -126,6 +138,14 @@ container_test:
 container_scanning:
     needs: ["build"]
     before_script: []
+    rules:
+        - if: ($CI_PIPELINE_SOURCE == 'web')
+          when: always
+        - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
+          changes:
+            - README.tpl
+          when: never
+        - when: always
     tags:
         - dind64
     variables:
@@ -211,47 +231,65 @@ deploy:
 readme:
     stage: readme
     image: docker:23.0.4
-    needs: ["deploy"]
     variables:
-        DOCKERHUB_REPO_PREFIX: "maurosoft1973"
-        DOCKERHUB_REPO_NAME: "alpine-lftp"
-        DOCKERHUB_SHORT_DESCRIPTION: "LFTP Docker Image with Multilanguage e Timezone support running on Alpine Linux"
+        DOCKER_USER: $DOCKER_HUB_USERNAME
+        DOCKER_PASS: $DOCKER_HUB_PASSWORD
+        PUSHRM_SHORT: "LFTP Docker Image with Multilanguage e Timezone support running on Alpine Linux"
+        PUSHRM_TARGET: docker.io/$DOCKER_HUB_USERNAME/alpine-lftp
+        PUSHRM_DEBUG: 1
+        PUSHRM_FILE: /tmp/repository/README.md
+    rules:
+      - if: ($CI_PIPELINE_SOURCE == 'web')
+        when: always
+      - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
+        changes:
+        - README.tpl
+        when: always
     tags:
         - dind64
     script:
         - export LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
         - |
-          git config --global user.email "mauro.cardillo@gmail.com"
-          git config --global user.name "Mauro Cardillo"
-          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git /tmp/repository
+            git config --global user.email "mauro.cardillo@gmail.com"
+            git config --global user.name "Mauro Cardillo"
+            git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git /tmp/repository
         - cd /tmp/repository
         - echo "Generate README for Alpine Version ${ALPINE_VERSION} and LFTP Version ${LFTP_VERSION}"
         - |
-          sed "s/\%ALPINE_RELEASE\%/${JOB_ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
-          sed "s/\%ALPINE_VERSION\%/${JOB_ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
-          sed "s/\%ALPINE_VERSION_DATE\%/${JOB_ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
-          sed "s/\%LFTP_VERSION\%/${LFTP_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
-          sed "s/\%LFTP_VERSION_DATE\%/${LFTP_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
-          sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
-          rm -rf README_COMPILE.*
+            sed "s/\%ALPINE_RELEASE\%/${JOB_ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
+            sed "s/\%ALPINE_VERSION\%/${JOB_ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
+            sed "s/\%ALPINE_VERSION_DATE\%/${JOB_ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
+            sed "s/\%LFTP_VERSION\%/${LFTP_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
+            sed "s/\%LFTP_VERSION_DATE\%/${LFTP_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
+            sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
+            rm -rf README_COMPILE.*
         - |
-          git add .
-          git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and LFTP Version ${LFTP_VERSION}"
-          git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
+            git add .
+            git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and LFTP Version ${LFTP_VERSION}"
+            git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
         - |
-          FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
-          docker pull maurosoft1973/alpine-readme-to-dockerhub
-          docker run --rm -e DOCKERHUB_USERNAME="$DOCKER_HUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKER_HUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+            curl -LO https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 
+            chmod +x docker-pushrm_linux_amd64
+            mv docker-pushrm_linux_amd64 /usr/local/bin/docker-pushrm
+        - |
+            docker-pushrm docker.io/$DOCKER_HUB_USERNAME/alpine-lftp
 
 clean:
     stage: clean
     needs: ["deploy"]
+    rules:
+        - if: ($CI_PIPELINE_SOURCE == 'web')
+          when: always
+        - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
+          changes:
+            - README.tpl
+          when: never
+        - when: always
     allow_failure: true
     tags:
         - dind64
-    only:
-        - master
     script:
         - |
-          docker images ${DOCKER_HUB_URL}/${DOCKER_HUB_PREFIX}/${DOCKER_IMAGE} -q | xargs --no-run-if-empty docker rmi -f
-          docker volume ls -qf dangling=true | xargs --no-run-if-empty docker volume rm
+            docker images ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE} -q | xargs --no-run-if-empty docker rmi -f
+            docker images ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE} -q | xargs --no-run-if-empty docker rmi -f
+            docker volume ls -qf dangling=true | xargs --no-run-if-empty docker volume rm
