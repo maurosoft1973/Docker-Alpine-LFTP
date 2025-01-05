@@ -346,7 +346,7 @@ readme:
                     LFTP_VERSION_DATE=${JOB_LFTP_VERSION_DATE}
                     FOUND=1
                 fi
-            done < "./.alpine_versions"
+            done < "./.lftp_versions"
         - |
             if [ $FOUND == 0 ]; then
               exit 0
