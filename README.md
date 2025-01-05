@@ -4,12 +4,12 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-lftp.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-lftp.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.17.3-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.21.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 
-The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/)  with [LFTP Version v4.9.2-r4](https://lftp.yar.ru/).
+The Docker images [(maurosoft1973/alpine-lftp)](https://hub.docker.com/r/maurosoft1973/alpine-lftp/) is based on the minimal [Alpine Linux](https://alpinelinux.org/)  with [LFTP Version v4.9.2-r7](https://lftp.yar.ru/).
 
-##### Alpine Version 3.17.3 (Released Mar 29 2023)
-##### LFTP Version 4.9.2-r4 (Released 2022-08-02 08:35:20)
+##### Alpine Version 3.21.0 (Released 2024-12-05)
+##### LFTP Version 4.9.2-r7 (Released 2024-08-15)
 
 ## Description
 
@@ -97,20 +97,20 @@ LFTP includes the following features (some may be missed in this list):
 * ```:test-ppc64le```   test 64 bit PowerPC
 * ```:test-x86```       test 32 bit Intel/AMD
 * ```:test-x86_64```    test 64 bit Intel/AMD
-* ```:3.17.3``` 3.17.3 branch based (Automatic Architecture Selection)
-* ```:3.17.3-aarch64```   3.17.3 64 bit ARM
-* ```:3.17.3-armhf```     3.17.3 32 bit ARM v6
-* ```:3.17.3-armv7```     3.17.3 32 bit ARM v7
-* ```:3.17.3-ppc64le```   3.17.3 64 bit PowerPC
-* ```:3.17.3-x86```       3.17.3 32 bit Intel/AMD
-* ```:3.17.3-x86_64```    3.17.3 64 bit Intel/AMD
-* ```:3.17.3-4.9.2-r4``` 3.17.3-4.9.2-r4 branch based (Automatic Architecture Selection)
-* ```:3.17.3-4.9.2-r4-aarch64```   3.17.3 64 bit ARM
-* ```:3.17.3-4.9.2-r4-armhf```     3.17.3 32 bit ARM v6
-* ```:3.17.3-4.9.2-r4-armv7```     3.17.3 32 bit ARM v7
-* ```:3.17.3-4.9.2-r4-ppc64le```   3.17.3 64 bit PowerPC
-* ```:3.17.3-4.9.2-r4-x86```       3.17.3 32 bit Intel/AMD
-* ```:3.17.3-4.9.2-r4-x86_64```    3.17.3 64 bit Intel/AMD
+* ```:3.21.0``` 3.21.0 branch based (Automatic Architecture Selection)
+* ```:3.21.0-aarch64```   3.21.0 64 bit ARM
+* ```:3.21.0-armhf```     3.21.0 32 bit ARM v6
+* ```:3.21.0-armv7```     3.21.0 32 bit ARM v7
+* ```:3.21.0-ppc64le```   3.21.0 64 bit PowerPC
+* ```:3.21.0-x86```       3.21.0 32 bit Intel/AMD
+* ```:3.21.0-x86_64```    3.21.0 64 bit Intel/AMD
+* ```:3.21.0-4.9.2-r7``` 3.21.0-4.9.2-r7 branch based (Automatic Architecture Selection)
+* ```:3.21.0-4.9.2-r7-aarch64```   3.21.0 64 bit ARM
+* ```:3.21.0-4.9.2-r7-armhf```     3.21.0 32 bit ARM v6
+* ```:3.21.0-4.9.2-r7-armv7```     3.21.0 32 bit ARM v7
+* ```:3.21.0-4.9.2-r7-ppc64le```   3.21.0 64 bit PowerPC
+* ```:3.21.0-4.9.2-r7-x86```       3.21.0 32 bit Intel/AMD
+* ```:3.21.0-4.9.2-r7-x86_64```    3.21.0 64 bit Intel/AMD
 
 ## Layers & Sizes
 
@@ -171,4 +171,4 @@ deploy-prod:
 ```
 
 ***
-###### Last Update 22.12.2023 04:12:07
+###### Last Update 05.01.2025 10:54:03
