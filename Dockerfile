@@ -27,8 +27,8 @@ LABEL \
 
 RUN \
     echo "" > /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/main" >> /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/community" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_RELEASE/main" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_RELEASE/community" >> /etc/apk/repositories && \
     apk update && \
     apk add --update --no-cache openssh-client git lftp && \
     rm -rf /tmp/* /var/cache/apk/*
