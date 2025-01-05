@@ -131,7 +131,7 @@ LFTP includes the following features (some may be missed in this list):
 
 ## Sample Use with gitlab pipeline
 The script below allows you to synchronize files on a remote server, excluding hidden files and folders (-X .* -X .*/)
-The script restore_last_git_modified_time.sh sets the last modified date on the repository files before syncronized.
+The script git_restore_last_modified_time sets the last modified date on the repository files before syncronized.
 
 ```yalm
 stages:
@@ -150,7 +150,7 @@ deploy-develop:
     only:
         - develop
     script:
-        - /restore_last_git_modified_time.sh
+        - git_restore_last_modified_time
         - lftp -e "set ssl:verify-certificate no; set ftp:use-mdtm-overloaded true; open $FTP_SERVER; user $FTP_USERNAME $FTP_PASSWORD; mirror -X .* -X .*/ --reverse --verbose --delete $FTP_LOCAL_FOLDER $FTP_REMOTE_FOLDER; bye"
 
 deploy-prod:
@@ -166,7 +166,7 @@ deploy-prod:
     only:
         - prod
     script:
-        - /restore_last_git_modified_time.sh
+        - git_restore_last_modified_time
         - lftp -e "set ssl:verify-certificate no; set sftp:auto-confirm yes; open sftp://$FTP_SERVER -p $FTP_PORT -u $FTP_USERNAME,$FTP_PASSWORD; mirror -X .* -X .*/ --reverse --verbose --delete $FTP_LOCAL_FOLDER $FTP_REMOTE_FOLDER; bye"
 ```
 

@@ -14,10 +14,5 @@ fileExistenceTests:
     uid: 0    
     gid: 0
 
-fileContentTests:
-  - name: 'Alpine Version Testing'
-    path: '/etc/os-release'
-    expectedContents: ['.*VERSION_ID=3.17.3.*']
-
 metadataTest:
     entrypoint: ['/scripts/run-alpine-lftp.sh']
